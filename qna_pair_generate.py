@@ -70,20 +70,24 @@ def generate_qa_from_chunk(chunk: str, num_pairs: int = 3) -> list:
     Returns fine-tuning-ready JSONL objects.
     """
     prompt = f"""
-You are preparing fine-tuning data for a chatbot that answers questions about Saud's CV and GitHub repositories.
+You are preparing high-quality fine-tuning data for a chatbot that answers questions about Saud’s CV and GitHub repositories.
 
-Guidelines:
-- Generate {num_pairs} question-answer pairs ONLY about Saud's skills, education, projects, or repositories.
-- Each pair must be factual and strictly based on the provided text. Do not hallucinate.
-- Keep questions natural (as a user would ask).
-- Keep answers concise but informative.
-- If text does not provide enough info, skip instead of guessing.
-- Format:
+Instructions:
+1. Generate {num_pairs} question-answer pairs based strictly on the provided text.
+2. Only use information that explicitly appears in the text (skills, education, projects, repositories, certifications, experience). 
+   - ❌ Do not guess, infer, or add details not present. 
+   - ✅ If the text does not contain enough detail to form a clear Q&A, skip it.
+3. Make the questions natural and conversational (like a user would ask about Saud).
+4. Keep answers concise, factual, and informative.
+5. Avoid redundancy across questions — each pair should cover a distinct fact or concept.
+6. Output format must be exactly:
 Q: <question>
 A: <answer>
+(no extra commentary or explanations).
 
-Text:
+Text to analyze:
 {chunk}
+
 """
 
     try:

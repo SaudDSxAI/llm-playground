@@ -4,6 +4,7 @@ from github import Github
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
+
 # ================= CONFIG =================
 load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")

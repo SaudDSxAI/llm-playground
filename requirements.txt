@@ -3,6 +3,7 @@ python-dotenv
 
 # LangChain core
 langchain
+langchain-community
 langchain-core
 langchain-openai
 langchain-text-splitters

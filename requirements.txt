@@ -1,5 +1,17 @@
-openai>=1.0.0
-python-dotenv>=1.0.0
-PyPDF2>=3.0.0
-python-docx>=0.8.11
-PyGithub
+# Environment and config
+python-dotenv
+
+# LangChain core
+langchain
+langchain-core
+langchain-openai
+langchain-text-splitters
+
+# Vector store
+faiss-cpu
+
+# Document loaders & processing
+pypdf
+python-docx
+tiktoken
+typing-extensions

@@ -16,3 +16,7 @@ pypdf
 python-docx
 tiktoken
 typing-extensions
+
+
+networkx
+langchain-experimental

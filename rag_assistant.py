@@ -1,14 +1,16 @@
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+import networkx as nx
 
 # LangChain imports
-from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, UnstructuredWordDocumentLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
+from langchain_experimental.graph_transformers import LLMGraphTransformer
 
 # ================= CONFIG =================
 load_dotenv()
@@ -18,11 +20,15 @@ OUTPUT_DIR = Path("data")
 COMBINED_FILE = OUTPUT_DIR / "combined.txt"
 FAISS_PATH = OUTPUT_DIR / "faiss_index"
 PROMPT_FILE = OUTPUT_DIR / "prompt.txt"
+KG_FILE = OUTPUT_DIR / "conversation_kg.txt"
 
 if not OPENAI_API_KEY:
     raise ValueError("❌ Missing OPENAI_API_KEY in .env")
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# Initialize KG graph
+conversation_graph = nx.DiGraph()
 
 # ================= STEP 0: Load Prompt =================
 def load_prompt(prompt_file=PROMPT_FILE):
@@ -91,6 +97,24 @@ def build_qa_chain(vectorstore, system_prompt):
     )
     return qa_chain
 
+# ================= STEP 5: Update KG =================
+def update_kg(question, answer):
+    # Add nodes for Q and A
+    conversation_graph.add_node(question, type="question")
+    conversation_graph.add_node(answer, type="answer")
+
+    # Connect Q -> A
+    conversation_graph.add_edge(question, answer, relation="answered_by")
+
+# ================= STEP 6: Save KG to File =================
+def save_kg_to_file(graph, file_path=KG_FILE):
+    with open(file_path, "w", encoding="utf-8") as f:
+        for node in graph.nodes(data=True):
+            f.write(f"NODE: {node}\n")
+        for edge in graph.edges(data=True):
+            f.write(f"EDGE: {edge}\n")
+    print(f"✅ Conversation KG saved → {file_path}")
+
 # ================= MAIN PIPELINE =================
 def run_pipeline():
     print("🔄 Loading recruiter prompt...")
@@ -108,19 +132,27 @@ def run_pipeline():
     print("🔄 Building QA chain...")
     qa_chain = build_qa_chain(vectorstore, system_prompt)
 
-    print("\n🚀 CV Assistant Ready! Ask me questions (type 'exit' to quit)\n")
+    print("\n🚀 CV Assistant with KG Ready! Ask me questions (type 'exit' to quit)\n")
     while True:
         query = input("Query: ")
         if query.lower() in ["exit", "quit"]:
-            print("👋 Exiting assistant. Goodbye!")
+            print("👋 Exiting assistant. Saving conversation...")
+            save_kg_to_file(conversation_graph)
             break
+
         print("💭 Thinking...")
         try:
             result = qa_chain.invoke({"query": query})
-            print("\nAnswer:", result["result"])
+            answer = result["result"]
+            print("\nAnswer:", answer)
+
             print("\nSources:")
             for doc in result["source_documents"]:
                 print(" -", doc.metadata.get("source", "unknown"))
+
+            # Update KG with conversation
+            update_kg(query, answer)
+
         except Exception as e:
             print(f"⚠️ Error: {e}")
 

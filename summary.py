@@ -12,8 +12,8 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     raise ValueError("❌ Missing OPENAI_API_KEY in .env file")
 
-DATA_DIR = Path("data")
-INPUT_FILE = DATA_DIR / "github_data.txt"
+DATA_DIR    = Path("data")
+INPUT_FILE  = DATA_DIR / "github_data.txt"
 OUTPUT_FILE = DATA_DIR / "summarize.txt"
 MAX_WORKERS = 5
 
